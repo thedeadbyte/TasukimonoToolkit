@@ -1,2 +1,2 @@
 # TasukimonoToolkit
-A set of scripts and modules for the Cyber Ninja. 
+A set of scripts and modules; a Cyber Ninja’s Digital Daisho
