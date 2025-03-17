@@ -1,7 +1,7 @@
 
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.0.1
 
 .GUID 5f005950-ef04-495d-9b93-9e791f91d222
 
@@ -55,7 +55,7 @@ if ($apps.Count -eq 0) {
     exit
 }
 
-Write-Host "Applications with available uninstallers:"
+Write-Host "`nInstalled Applications:`n"
 for ($i = 0; $i -lt $apps.Count; $i++) {
     Write-Host "[$i] $($apps[$i].DisplayName)"
 }
@@ -65,18 +65,29 @@ $selection = Read-Host "Enter the index number of the application to uninstall"
 
 if ($selection -match '^\d+$' -and [int]$selection -ge 0 -and [int]$selection -lt $apps.Count) {
     $selectedApp = $apps[$selection]
-    Write-Host "Uninstalling: $($selectedApp.DisplayName)"
-    
-    # Execute the uninstall command
+    Write-Host "`nAttempting to silently uninstall: $($selectedApp.DisplayName)`n"
+
+    # Extract uninstall command
     $uninstallCommand = $selectedApp.UninstallString
 
+    # Modify command to enforce silent uninstallation
     if ($uninstallCommand -match '^MsiExec.exe /I') {
-        $uninstallCommand = $uninstallCommand -replace '/I', '/X'  # Change install to uninstall for MSI packages
+        $uninstallCommand = $uninstallCommand -replace '/I', '/X'  # Convert install command to uninstall
+        $uninstallCommand += " /quiet /norestart"  # Ensure silent operation
+    } elseif ($uninstallCommand -match 'MsiExec.exe') {
+        $uninstallCommand += " /quiet /norestart"
+    } elseif ($uninstallCommand -match '\.exe') {
+        # Try common silent switches
+        $uninstallCommand += " /quiet /silent /qn /norestart"
     }
 
+    # Execute uninstall command
+    Write-Host "Executing: $uninstallCommand"
     Start-Process cmd -ArgumentList "/c $uninstallCommand" -NoNewWindow -Wait
+    Write-Host "`nUninstallation process initiated.`n"
+
 } else {
-    Write-Host "Invalid selection. Exiting."
+    Write-Host "`nInvalid selection. Exiting.`n"
 }
 
 
