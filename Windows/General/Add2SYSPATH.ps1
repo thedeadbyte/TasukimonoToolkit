@@ -1,6 +1,13 @@
-param (
+param([string]$folderPath)
+
+
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$folderPath", [System.EnvironmentVariableTarget]::Machine)
+
+write-output "$folderPath added to system path."
+
+Start-Process -FilePath "powershell.exe"
+
+exit
 
 
 
-$folderPath = "C:\Program Files\Restic"
-[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$resticPath", [System.EnvironmentVariableTarget]::Machine)
