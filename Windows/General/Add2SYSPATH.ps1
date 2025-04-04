@@ -5,9 +5,5 @@ param([string]$folderPath)
 
 write-output "$folderPath added to system path."
 
-Start-Process -FilePath "powershell.exe"
-
-exit
-
 
 
