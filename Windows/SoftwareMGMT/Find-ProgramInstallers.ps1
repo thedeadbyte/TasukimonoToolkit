@@ -3,6 +3,7 @@ param (
     [int]$MinSizeMB = 20,
     [string[]]$Extensions = @("*.exe", "*.msi"),
     [string]$ExportCSV = "",
+    [string]$Keyword = "",
     [switch]$VerboseLog
 )
 
@@ -17,7 +18,8 @@ function Convert-Size {
     }
 }
 
-Write-Host "Scanning $ScanPath for ${Extensions -join ', '} files > $MinSizeMB MB..."
+Write-Host "Scanning $ScanPath for ${Extensions -join ', '} files > $MinSizeMB MB..." -ForegroundColor Cyan
+if ($Keyword) { Write-Host "Filtering for keyword: '$Keyword'" -ForegroundColor Cyan }
 
 $results = @()
 
@@ -26,15 +28,17 @@ try {
 
     foreach ($file in $files) {
         if ($file.Length -gt ($MinSizeMB * 1MB)) {
-            $entry = [PSCustomObject]@{
-                FullPath      = $file.FullName
-                Size          = Convert-Size $file.Length
-                SizeBytes     = $file.Length
-                Created       = $file.CreationTime
-                LastModified  = $file.LastWriteTime
+            if (-not $Keyword -or $file.FullName -like "*$Keyword*") {
+                $entry = [PSCustomObject]@{
+                    FullPath      = $file.FullName
+                    Size          = Convert-Size $file.Length
+                    SizeBytes     = $file.Length
+                    Created       = $file.CreationTime
+                    LastModified  = $file.LastWriteTime
+                }
+                $results += $entry
+                if ($VerboseLog) { Write-Host "Matched: $($file.FullName)" -ForegroundColor Yellow }
             }
-            $results += $entry
-            if ($VerboseLog) { Write-Host "Found: $($file.FullName)" -ForegroundColor Yellow }
         }
     }
 
